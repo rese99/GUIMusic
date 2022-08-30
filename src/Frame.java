@@ -412,14 +412,14 @@ public class Frame extends JFrame {
     }
 
     public static void main(String[] args) {
-//        new Thread(()->{
-//            Mysql.create();
-//            try {
-//                Mysql.SingersInfo();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }).start();
+       new Thread(()->{
+           Mysql.create();
+           try {
+               Mysql.SingersInfo();
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+       }).start();
         new Frame();
         ButtonListener();
     }
