@@ -280,6 +280,19 @@ public class Frame extends JFrame {
                 MusicTableInfo.SingersInfo(MusicTableInfo.url.get(x),label.getText());
             }
         });
+        SongSheet.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FindTablePanel.removeAll();
+                FindTablePanel.updateUI();
+                FindTablePanel.setLayout(new FlowLayout());
+                try {
+                    MusicTableInfo.SongSheet();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            }
+        });
         MusicTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -365,8 +378,10 @@ public class Frame extends JFrame {
         play.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                MusicInfo.setText(Lrc.MusicInfo());
                 if (play.isSelected()) {
                     play.setText("暂停");
+                    label.setIcon(null);
                     Lrc.start();
 
                     if (count == 1) {
@@ -412,14 +427,15 @@ public class Frame extends JFrame {
     }
 
     public static void main(String[] args) {
-//        new Thread(()->{
-//            Mysql.create();
-//            try {
-//                Mysql.SingersInfo();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }).start();
+       new Thread(()->{
+           Mysql.create();
+           try {
+               Mysql.SingersInfo();
+               Mysql.SongSheet();
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+       }).start();
         new Frame();
         ButtonListener();
     }

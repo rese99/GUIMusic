@@ -278,7 +278,6 @@ public class ButtonMethod {
                 menu.setVisible(false);
                 try {
                     id = (String) value1;
-                    Frame.MusicInfo.setText(MusicTable.getValueAt(r, 0) + "  " + MusicTable.getValueAt(r, 1));
                     Lrc.readMp3(Lrc.MusicUrl((String) value1), Lrc.LrcUrl((String) value1));
                 } catch (Exception exception) {
                     exception.printStackTrace();

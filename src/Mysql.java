@@ -2,7 +2,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Mysql {
-    //https://github.com/rese99/GUIMusic.git
     public static String username = "root";
     public static String password = "123456";
 
@@ -278,7 +276,6 @@ public class Mysql {
                     i++;
                 }
             }
-            System.out.println(list);
             save(list, list().get(j));
         }
 
@@ -293,6 +290,73 @@ public class Mysql {
             try {
                 Connection connection = DriverManager.getConnection(url, username, password);
                 String sql = "select * from " + name + ";";
+                PreparedStatement ps = connection.prepareStatement(sql);
+                rs = ps.executeQuery();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return rs;
+    }
+    public static void SongSheet() throws Exception{
+        List<String>titles=new ArrayList<>();
+        List<String>urls=new ArrayList<>();
+        List<String>imgs=new ArrayList<>();
+        for (int i = 35; i < 35 * 19; ) {
+            String url = "https://music.163.com/discover/playlist/?order=hot&cat=%E5%85%A8%E9%83%A8&limit=35&offset=" + i;
+            Document document = Jsoup.connect(url).timeout(3000).get();
+            Elements elements = document.select("#m-pl-container");
+            for (Element element : elements.select("a.msk")) {
+                String title = element.attr("title");
+                String href = "https://music.163.com"+element.attr("href");
+                titles.add(title);
+                urls.add(href);
+            }
+            for (Element element : elements.select("img[class=j-flag]")) {
+                String img = element.attr("src");
+                imgs.add(img);
+            }
+            i = i + 35;
+        }
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:3306/SongSheet?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC";
+            try {
+                Connection connection = DriverManager.getConnection(url, username, password);
+                Statement stmt = connection.createStatement();
+                String RemoveSql = "DROP TABLE IF EXISTS songsheet;";
+                stmt.executeUpdate(RemoveSql);
+                String CreateSql = "create table songsheet (name varchar(255) not null,pic mediumblob,url varchar (255) not null);";
+                stmt.executeUpdate(CreateSql);
+                for (int i = 0; i <titles.size() ; i++) {
+                    byte[] arr = getImgStr(new URL(imgs.get(i)));
+                    Blob blob = connection.createBlob();
+                    blob.setBytes(1, arr);
+                    String InsertSql="insert into songsheet values("+"'"+titles.get(i)+"'"+","+"?"+","+"'"+urls.get(i)+"');";
+                    PreparedStatement ps = connection.prepareStatement(InsertSql);
+                    ps.setBlob(1, blob);
+                    ps.executeUpdate();
+                }
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static ResultSet ReadSongSheet(){
+        ResultSet rs = null;
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            //获取连接
+            String url = "jdbc:mysql://localhost:3306/songsheet?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC";
+            try {
+                Connection connection = DriverManager.getConnection(url, username, password);
+                String sql = "select * from songsheet;";
                 PreparedStatement ps = connection.prepareStatement(sql);
                 rs = ps.executeQuery();
             } catch (SQLException e) {

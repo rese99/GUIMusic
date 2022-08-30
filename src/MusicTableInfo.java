@@ -392,4 +392,76 @@ public class MusicTableInfo {
         });
         return table;
     }
+    public static void SongSheet() throws Exception {
+        Frame.routineColor.setOpaque(false);
+        List<String> urls = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        List<Icon> pics = new ArrayList<>();
+        ResultSet rs = Mysql.ReadSongSheet();
+        while (rs.next()) {
+            String name = rs.getString("name");
+            String url = rs.getString("url");
+            names.add(name);
+            urls.add(url);
+            InputStream is = rs.getBinaryStream("pic");
+            BufferedImage bufImg = null;
+            if (is != null) {
+                try {
+                    bufImg = ImageIO.read(is);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Image image = bufImg;
+                ImageIcon icon = new ImageIcon(image);
+                pics.add(icon);
+            }
+        }
+        JLabel[] labels = new JLabel[names.size()];
+        for (int i = 0; i < names.size(); i++) {
+            labels[i] = new JLabel();
+            labels[i].setText(names.get(i));
+            labels[i].setIcon(pics.get(i));
+            labels[i].setHorizontalTextPosition(JLabel.CENTER);
+            labels[i].setVerticalTextPosition(JLabel.BOTTOM);
+        }
+        String[] header = {"", "", "", "", ""};
+        Object[][] info;
+        if (names.size() % 5 != 0) {
+            info = new Object[names.size() / 5 + 1][5];
+        } else {
+            info = new Object[names.size() / 5][5];
+        }
+        int k = 0;
+        int j = 0;
+        for (int i = 0; i < names.size(); i++) {
+            info[k][j] = labels[i];
+            j++;
+            if (j == 5) {
+                j = 0;
+                k++;
+            }
+        }
+        JTable table = new JTable(new DefaultTableModel(info, header)) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        table.setRowHeight(160);
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(160);
+        }
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.setOpaque(false);
+        table.setShowGrid(false);
+        table.setDefaultRenderer(table.getColumnClass(-1), Frame.routineColor);
+        table.addMouseMotionListener(new MyMouseListener(table, Frame.routineColor));
+        table.addMouseListener(new MyMouseListener(table, Frame.routineColor));
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(Frame.js);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setPreferredSize(new Dimension(900, 570));
+        Frame.FindTablePanel.add(scrollPane);
+    }
 }

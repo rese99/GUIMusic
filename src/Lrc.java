@@ -1,3 +1,7 @@
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +21,6 @@ public class Lrc {
     public static boolean mark = true;
     public static boolean sure = true;
     public static final Pattern pattern = Pattern.compile("(?<=\\[)[0-9]+?\\:[0-9]+?(\\.[0-9]+)?(?=\\])");//匹配[xx:xx.xx]中的内容（不含[]）
-    public static JLabel label = Frame.label;
     public static AudioInputStream ais;
     public static BufferedImage buffImg;
     public static AudioFormat format;
@@ -25,13 +28,7 @@ public class Lrc {
     public static Clip clip;
     public static ArrayList<Code> lrc = new ArrayList<Code>();
     public static volatile boolean Draw = true;
-    public static File MusicFile = new File("D:\\许嵩-千百度.wav");
-    public static File LrcFile = new File("D:\\新建文件夹 (2)\\许嵩-千百度.lrc");
-
-    public static void main(String[] args) throws Exception {
-        URL MusicUrl = new URL("http://music.163.com/song/media/outer/url?id=569200213");
-        URL LrcUrl = new URL("http://music.163.com/api/song/media?id=569200213");
-    }
+    public static String url;
 
     /**
      * 配置格式
@@ -83,12 +80,28 @@ public class Lrc {
 
     }
 
+    public static String MusicInfo() {
+        String url = Lrc.url.replace("http://music.163.com/song/media/outer/url?id=", "https://music.163.com/song?id=");
+        Document document = null;
+        try {
+            document = Jsoup.connect(url).get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Elements elements = document.select("div[class=cnt]");
+        String text = elements.select("em[class=f-ff2]").text();
+        String name = elements.select("p[class=des s-fc4]").get(0).text().replace("歌手：", " ");
+        return text + name;
+    }
 
-    /**
-     * 读取音频
-     */
-//
     public static void readMp3(URL MusicUrl, URL url) throws Exception {
+        Lrc.url = String.valueOf(MusicUrl);
+        Frame.label.setIcon(null);
+        if (lrc != null && clip != null) {
+            stop();
+            lrc.clear();
+            clip = null;
+        }
         byte[] x = new byte[1024 * 6];
         int len;
         String[] p = {"]", "[", "][", "\r\n", "\\n", "\n", "\"[", "\"\n["};
@@ -158,9 +171,17 @@ public class Lrc {
             time = clip.getMicrosecondLength();
             ais.close();
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "该音乐似乎没有版权哦！");
+            Frame.play.setSelected(false);
+            Frame.play.setText("播放");
+            lrc.clear();
         }
-
+        if (Frame.play.isSelected()) {
+            if (clip != null) {
+                Frame.MusicInfo.setText(MusicInfo());
+                start();
+            }
+        }
     }
 
     public static void stop() {
@@ -173,29 +194,32 @@ public class Lrc {
     public static void start() {
         Draw = true;
         sure = false;
-        clip.start();
-        if (clip.getMicrosecondPosition() == time) {
-            clip.setMicrosecondPosition(0);
+        if (clip != null) {
             clip.start();
-        }
-        if (clip.getMicrosecondPosition() == 0) {
-            kk();
+            if (clip.getMicrosecondPosition() == time) {
+                clip.setMicrosecondPosition(0);
+                clip.start();
+            }
+            if (clip.getMicrosecondPosition() == 0) {
+                kk();
+            }
         }
     }
 
     public static void loop() {
         clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
-    public static void Order(){
+
+    public static void Order() {
         for (int i = 0; i < Frame.MusicTable.getRowCount(); i++) {
             try {
-                readMp3(MusicUrl((String) Frame.MusicTable.getValueAt(i,1)), LrcUrl((String) Frame.MusicTable.getValueAt(i,1)));
+                readMp3(MusicUrl((String) Frame.MusicTable.getValueAt(i, 1)), LrcUrl((String) Frame.MusicTable.getValueAt(i, 1)));
                 Thread.sleep(time);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            if (i==Frame.MusicTable.getRowCount()-1){
-                i=0;
+            if (i == Frame.MusicTable.getRowCount() - 1) {
+                i = 0;
             }
         }
     }
@@ -211,7 +235,7 @@ public class Lrc {
                     break;
                 }
                 if (lrc.get(index).getTime() == time) {
-                    label.removeAll();
+                    Frame.label.removeAll();
                     float y = lrc.get(index).getStr().trim().length();
                     if (index + 1 >= lrc.size()) {
                         z = y * 1000;
@@ -224,7 +248,7 @@ public class Lrc {
                             while (!Draw) {
                             }
                             ImageIcon icon = StringTwoColor(lrc.get(index).getStr().trim(), font, Color.RED, Color.BLACK, x);
-                            label.setIcon(icon);
+                            Frame.label.setIcon(icon);
                             try {
                                 Thread.sleep((long) (z / y));
                             } catch (InterruptedException e) {
@@ -246,7 +270,7 @@ public class Lrc {
                         e.printStackTrace();
                     }
                 } else if (lrc.get(index).getTime() < time) {
-                    label.removeAll();
+                    Frame.label.removeAll();
                     float y = lrc.get(index).getStr().trim().length();
                     if (index + 1 >= lrc.size()) {
                         z = y * 1000;
@@ -259,7 +283,7 @@ public class Lrc {
                             while (!Draw) {
                             }
                             ImageIcon icon = StringTwoColor(lrc.get(index).getStr().trim(), font, Color.RED, Color.BLACK, x);
-                            label.setIcon(icon);
+                            Frame.label.setIcon(icon);
                             try {
                                 Thread.sleep((long) (z / y));
                             } catch (InterruptedException e) {
@@ -277,7 +301,7 @@ public class Lrc {
                     index++;
                 }
             }
-            label.setIcon(null);
+            Frame.label.setIcon(null);
         }).start();
     }
 
