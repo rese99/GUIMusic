@@ -304,7 +304,7 @@ public class Mysql {
         List<String>titles=new ArrayList<>();
         List<String>urls=new ArrayList<>();
         List<String>imgs=new ArrayList<>();
-        for (int i = 35; i < 35 * 19; ) {
+        for (int i = 35; i < 35 * 18; ) {
             String url = "https://music.163.com/discover/playlist/?order=hot&cat=%E5%85%A8%E9%83%A8&limit=35&offset=" + i;
             Document document = Jsoup.connect(url).timeout(3000).get();
             Elements elements = document.select("#m-pl-container");

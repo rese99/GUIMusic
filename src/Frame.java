@@ -11,7 +11,7 @@ import java.net.URL;
 
 public class Frame extends JFrame {
     public static JTextField MusicField;
-    public static JScrollPane MusicTableScrollPane, FindTableScrollPane, SingsScrollPane;
+    public static JScrollPane MusicTableScrollPane, FindTableScrollPane,SingerRootScrollPane, SingsScrollPane;
     public static DefaultTableModel MusicModel;
     public static JTable MusicTable, FindTable, SingerRoot, Singers;
     public static JButton Last, Next, last, next, PlayPatten, Find, Recommend, Singer, SongSheet, Ranking, ControlButton, AddMusic, removeMusic, addMusic;
@@ -37,12 +37,25 @@ public class Frame extends JFrame {
         SingerRoot.setDefaultRenderer(SingerRoot.getColumnClass(-1), routineColor);
         SingerRoot.addMouseMotionListener(new MyMouseListener(SingerRoot, routineColor));
         SingerRoot.addMouseListener(new MyMouseListener(SingerRoot, routineColor));
+        SingerRootScrollPane = new JScrollPane(SingerRoot){
+            @Override
+            public JScrollBar createVerticalScrollBar() {
+                JScrollBar verticalScrollBar = new JScrollPane.ScrollBar(1);
+                verticalScrollBar.setPreferredSize(new Dimension(0,0));
+                return verticalScrollBar;
+            }
+        };
+        SingerRootScrollPane.setBorder(js);
+        SingerRootScrollPane.setOpaque(false);
+        SingerRootScrollPane.getViewport().setOpaque(false);
+        SingerRootScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        SingerRootScrollPane.setPreferredSize(new Dimension(100, 570));
 
         SingerRootPanel = new JPanel();
         SingerRootPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        SingerRootPanel.setBounds(0, 0, 85, 570);
+        SingerRootPanel.setBounds(0, 0, 100, 570);
         SingerRootPanel.setOpaque(false);
-        SingerRootPanel.add(SingerRoot);
+        SingerRootPanel.add(SingerRootScrollPane);
 
         Singers = new JTable() {
             public boolean isCellEditable(int row, int column) {
@@ -56,16 +69,23 @@ public class Frame extends JFrame {
         Singers.setDefaultRenderer(Singers.getColumnClass(-1), routineColor);
         Singers.addMouseMotionListener(new MyMouseListener(Singers, routineColor));
         Singers.addMouseListener(new MyMouseListener(Singers, routineColor));
-        SingsScrollPane = new JScrollPane(Singers);
+        SingsScrollPane = new JScrollPane(Singers){
+            @Override
+            public JScrollBar createVerticalScrollBar() {
+                JScrollBar verticalScrollBar = new JScrollPane.ScrollBar(1);
+                verticalScrollBar.setPreferredSize(new Dimension(0,0));
+                return verticalScrollBar;
+            }
+        };
         SingsScrollPane.setBorder(js);
         SingsScrollPane.setOpaque(false);
         SingsScrollPane.getViewport().setOpaque(false);
         SingsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        SingsScrollPane.setPreferredSize(new Dimension(815, 570));
+        SingsScrollPane.setPreferredSize(new Dimension(800, 570));
 
         SingersPanel = new JPanel();
         SingersPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        SingersPanel.setBounds(100, 0, 815, 570);
+        SingersPanel.setBounds(100, 0, 800, 570);
         SingersPanel.setOpaque(false);
         SingersPanel.add(SingsScrollPane);
 
@@ -113,7 +133,14 @@ public class Frame extends JFrame {
         MusicTable.addMouseMotionListener(new MyMouseListener(MusicTable, routineColor));
         MusicTable.addMouseListener(new MyMouseListener(MusicTable, routineColor));
 
-        MusicTableScrollPane = new JScrollPane(MusicTable);
+        MusicTableScrollPane = new JScrollPane(MusicTable){
+            @Override
+            public JScrollBar createVerticalScrollBar() {
+                JScrollBar verticalScrollBar = new JScrollPane.ScrollBar(1);
+                verticalScrollBar.setPreferredSize(new Dimension(0,0));
+                return verticalScrollBar;
+            }
+        };
         MusicTableScrollPane.setBorder(js);
         MusicTableScrollPane.setOpaque(false);
         MusicTableScrollPane.getViewport().setOpaque(false);
@@ -272,6 +299,20 @@ public class Frame extends JFrame {
                 MusicTableInfo.SingerRoot();
             }
         });
+        SingerRoot.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (MusicTableInfo.Mark){
+                    try {
+                        MusicTableInfo.RankingInfo((String) SingerRoot.getValueAt(SingerRoot.getSelectedRow(), 1));
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+                }else {
+                    MusicTableInfo.Singers((String) SingerRoot.getValueAt(SingerRoot.getSelectedRow(), 0));
+                }
+            }
+        });
         Singers.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -291,6 +332,15 @@ public class Frame extends JFrame {
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
+            }
+        });
+        Ranking.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FindTablePanel.removeAll();
+                FindTablePanel.updateUI();
+                FindTablePanel.setLayout(null);
+                MusicTableInfo.Ranking();
             }
         });
         MusicTable.addMouseListener(new MouseAdapter() {
@@ -427,15 +477,15 @@ public class Frame extends JFrame {
     }
 
     public static void main(String[] args) {
-       new Thread(()->{
-           Mysql.create();
-           try {
-               Mysql.SingersInfo();
-               Mysql.SongSheet();
-           } catch (Exception e) {
-               e.printStackTrace();
-           }
-       }).start();
+//       new Thread(()->{
+//           Mysql.create();
+//           try {
+//               Mysql.SingersInfo();
+//               Mysql.SongSheet();
+//           } catch (Exception e) {
+//               e.printStackTrace();
+//           }
+//       }).start();
         new Frame();
         ButtonListener();
     }
